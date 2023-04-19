@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "git-diff-parser": "^1.0.0",
     "glob": "^10.0.0"
   }
 }

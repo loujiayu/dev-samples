@@ -19,6 +19,11 @@ fs.realpath@^1.0.0:
   resolved "https://registry.yarnpkg.com/fs.realpath/-/fs.realpath-1.0.0.tgz#1504ad2523158caa40db4a2787cb01411994ea4f"
   integrity sha512-OO0pH2lK6a0hZnAdau5ItzHPI6pUlvI7jMVnxUQRtw4owF2wk8lOSabtGDCTP4Ggrg2MbGnWO9X8K1t4+fGMDw==
 
+git-diff-parser@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/git-diff-parser/-/git-diff-parser-1.0.0.tgz#0a4ecb09388f3dbae92e1f5f73554142ebc11498"
+  integrity sha512-m6I3x7Amb759jXYDITS8M8GfdxV636ni2zV2/RrGtEMuH3CD45hbTFsTaVtmYsTsIQ3x7jibsOcFOqJvP6ptxg==
+
 glob@^10.0.0:
   version "10.0.0"
   resolved "https://registry.yarnpkg.com/glob/-/glob-10.0.0.tgz#034ab2e93644ba702e769c3e0558143d3fbd1612"
