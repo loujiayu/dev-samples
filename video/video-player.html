@@ -49,9 +49,11 @@ body {
 <div id="video-demo-container">
 	<button id="upload-button">Select MP4 Video</button> 
 	<input type="file" id="file-to-upload" accept="video/*" />
-	<video id="main-video" controls style="display: none;">
-		<source type="video/mp4" src="https://sample-videos.com/video123/flv/720/big_buck_bunny_720p_30mb.flv">
-	</video>
+	<div style="width: 498px; height: 280px;" >
+		<video id="main-video" controls height="280" width="498">
+			<source type="video/mp4" src="https://sample-videos.com/video123/flv/720/big_buck_bunny_720p_30mb.flv">
+		</video>
+	</div>
 	<canvas id="video-canvas"></canvas>
 	<div id="thumbnail-container">
 		 Seek to <select id="set-video-seconds"></select> seconds <a id="get-thumbnail" href="#">Download Thumbnail</a>
@@ -106,7 +108,6 @@ document.querySelector("#file-to-upload").addEventListener('change', function() 
       
   //   }, 100);
   // })
-	https://sample-videos.com/video123/flv/720/big_buck_bunny_720p_30mb.flv
 	// Load metadata of the video to get video duration and dimensions
 	_VIDEO.addEventListener('loadedmetadata', function() {
 			console.log(_VIDEO.duration);
@@ -170,13 +171,16 @@ function calculateImageData(data) {
 // // On clicking the Download button set the video in the canvas and download the base-64 encoded image data
 document.querySelector("#get-thumbnail").addEventListener('click', function() {
     _CTX.drawImage(_VIDEO, 0, 0, _VIDEO.videoWidth, _VIDEO.videoHeight);
-    const dataurl =	_CANVAS.toDataURL()
+    _CANVAS.toBlob((blob) => {
+			console.log(blob);
+    	document.querySelector('img').setAttribute('src', URL.createObjectURL(blob));
 
-    console.log(dataurl.length)
-    document.querySelector('img').setAttribute('src', dataurl);
-  const imagedata = _CTX.getImageData(0,0, _VIDEO.videoWidth, _VIDEO.videoHeight);
+		}, 'image/jpg', 1)
 
-  console.log(imagedata)
+  //   console.log(dataurl.length)
+  // const imagedata = _CTX.getImageData(0,0, _VIDEO.videoWidth, _VIDEO.videoHeight);
+
+  // console.log(imagedata)
   
 	// document.querySelector("#get-thumbnail").setAttribute('href', _CANVAS.toDataURL());
 	// document.querySelector("#get-thumbnail").setAttribute('download', 'thumbnail.png');
