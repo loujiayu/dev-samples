@@ -1,0 +1,16 @@
+{
+  "scripts": {
+    "start": "parcel index.html --open",
+    "build": "parcel build index.html"
+  },
+  "dependencies": {
+    "pixi.js": "7.2.4",
+    "@pixi/graphics-extras": "7.2.4",
+    "@pixi/math-extras": "7.2.4"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.21.3",
+    "parcel-bundler": "^1.6.1"
+  },
+  "main": "/index.html"
+}
