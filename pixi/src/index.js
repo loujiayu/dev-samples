@@ -5,79 +5,80 @@ const app = new PIXI.Application({ resizeTo: window });
 document.body.appendChild(app.view);
 
 const geometry = new PIXI.Geometry()
-    .addAttribute('aVPos', [-100, 0, 100, 0, 0, -150]);
-
-geometry.instanced = true;
-geometry.instanceCount = 5;
-
-const positionSize = 2;
-const colorSize = 3;
-const buffer = new PIXI.Buffer(new Float32Array(geometry.instanceCount * (positionSize + colorSize)));
-
-geometry.addAttribute(
-    'aIPos',
-    buffer,
-    positionSize,
-    false,
-    PIXI.TYPES.FLOAT,
-    4 * (positionSize + colorSize),
-    0,
-    true
-);
-geometry.addAttribute(
-    'aICol',
-    buffer,
-    colorSize,
-    false,
-    PIXI.TYPES.FLOAT,
-    4 * (positionSize + colorSize),
-    4 * positionSize, true
-);
-
-for (let i = 0; i < geometry.instanceCount; i++)
-{
-    const instanceOffset = i * (positionSize + colorSize);
-
-    buffer.data[instanceOffset + 0] = i * 80;
-    buffer.data[instanceOffset + 2] = Math.random();
-    buffer.data[instanceOffset + 3] = Math.random();
-    buffer.data[instanceOffset + 4] = Math.random();
-}
+    .addAttribute('aVertexPosition', // the attribute name
+        [-100, -100, // x, y
+            100, -100, // x, y
+            100, 100,
+            -100, 100], // x, y
+        2) // the size of the attribute
+    .addAttribute('aUvs', // the attribute name
+        [0, 0, // u, v
+            1, 0, // u, v
+            1, 1,
+            0, 1], // u, v
+        2) // the size of the attribute
+    .addIndex([0, 1, 2, 0, 2, 3])
+    .interleave();
 
 const shader = PIXI.Shader.from(`
+
     precision mediump float;
-    attribute vec2 aVPos;
-    attribute vec2 aIPos;
-    attribute vec3 aICol;
+
+    attribute vec2 aVertexPosition;
+    attribute vec2 aUvs;
 
     uniform mat3 translationMatrix;
     uniform mat3 projectionMatrix;
 
-    varying vec3 vCol;
+    varying vec2 vUvs;
 
     void main() {
-        vCol = aICol;
 
-        gl_Position = vec4((projectionMatrix * translationMatrix * vec3(aVPos + aIPos, 1.0)).xy, 0.0, 1.0);
+        vUvs = aUvs;
+        gl_Position = vec4((projectionMatrix * translationMatrix * vec3(aVertexPosition, 1.0)).xy, 0.0, 1.0);
+
     }`,
 
 `precision mediump float;
 
-    varying vec3 vCol;
+    varying vec2 vUvs;
+
+    uniform sampler2D uSampler2;
 
     void main() {
-        gl_FragColor = vec4(vCol, 1.0);
+
+        gl_FragColor = texture2D(uSampler2, vUvs );
     }
 
-`);
+`,
+{
+    uSampler2: PIXI.Texture.from('https://pixijs.com/assets/bg_scene_rotate.jpg'),
+});
 
-const triangles = new PIXI.Mesh(geometry, shader);
+const quad = new PIXI.Mesh(geometry, shader);
 
-triangles.position.set(400, 300);
+quad.position.set(200, 200);
+quad.scale.set(2);
 
-app.stage.addChild(triangles);
+app.stage.addChild(quad);
+
+// const renderTexture = PIXI.RenderTexture.create({ width: app.screen.width, height: app.screen.height });
+// const sprite = new PIXI.Sprite(renderTexture);
+// app.stage.addChild(sprite);
+
+quad.interactive = true;
+quad.on('click', () => {
+    const rgba = app.renderer.plugins.extract.pixels(quad);
+    let index = (event.offsetX * event.offsetY) * 4;
+    console.log(index);
+    let r = rgba[index];
+    let g = rgba[index + 1];
+    let b = rgba[index + 2];
+    let a = rgba[index + 3];
+    console.log(`RGBA: (${r}, ${g}, ${b}, ${a})`);
+});
 
 app.ticker.add((delta) =>
 {
-    // triangles.rotation += 0.01;
+    // quad.rotation += 0.01;
 });
