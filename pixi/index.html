@@ -7,6 +7,34 @@
   <link rel="stylesheet" href="src/styles.css">
 </head>
 <body>
+  <div id="view" style="width: 600px; height: 600px; position: absolute;" ></div>
+  <div id="index" style="width: 600px; height: 600px; position: absolute;"  ></div>
+
+
+  <div style="position: absolute; top: 900px; left: 50px;" >
+    <label for="blur">Blur:</label>
+    <input type="text" id="blur" name="fname"><br><br>
+
+    <label for="temperature">Temperature:</label>
+    <input type="text" id="temperature" name="fname"><br><br>
+
+    <span>Background replace</span>
+    <label>
+      <input type="radio" name="option1" value="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQWcOhU4Ej0qKpZrjffn3KwbyD9quINYnlCrw&usqp=CAU">  
+      <img width="100" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQWcOhU4Ej0qKpZrjffn3KwbyD9quINYnlCrw&usqp=CAU" alt="">
+    </label>
+
+    <label>
+      <input type="radio" name="option1" value="https://iso.500px.com/wp-content/uploads/2022/07/Sunset-somewhere-in-Iowa-By-Vath.-Sok-2.jpeg">  
+      <img width="100" src="https://iso.500px.com/wp-content/uploads/2022/07/Sunset-somewhere-in-Iowa-By-Vath.-Sok-2.jpeg" alt="">
+    </label>
+
+    <br><br>
+
+    <button id="unselect"> unselect</button>
+    <button id="remove"> toggle edge</button>
+  </div>
+
   <script src="src/index.js"></script>
 </body>
 </html>

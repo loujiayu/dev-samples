@@ -4,9 +4,11 @@
     "build": "parcel build index.html"
   },
   "dependencies": {
-    "pixi.js": "7.2.4",
     "@pixi/graphics-extras": "7.2.4",
-    "@pixi/math-extras": "7.2.4"
+    "@pixi/math-extras": "7.2.4",
+    "glsl-canny-edge-detection": "^1.0.7",
+    "glslify": "^7.1.1",
+    "pixi.js": "7.2.4"
   },
   "devDependencies": {
     "@babel/core": "^7.21.3",
