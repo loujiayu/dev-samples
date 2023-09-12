@@ -12,6 +12,8 @@ let selectedIndex = [-100, -100, -100];
 let sharps = [0];
 let temperatures = [0];
 let hues = [0];
+let saturations = [0];
+let brightness = [0];
 let changedIndex = [getColorId(selectedIndex)];
 let glBackground = null;
 let lastUndoPushTime = Date.now();
@@ -111,6 +113,8 @@ function renderMesh(container, image, indexImage, imageWidth, imageHeight, index
       uniform float sharps[10];
       uniform float temperatures[10];
       uniform float hues[10];
+      uniform float saturations[10];
+      uniform float brightness[10];
 
       int isEqual(float channel, float selectedChannel) {
           return abs(channel * 256.0 - selectedChannel) < 2.0 ? 1 : 0;
@@ -151,13 +155,15 @@ function renderMesh(container, image, indexImage, imageWidth, imageHeight, index
           // apply to global
           color = blur(color, uSampler2, vUvs, sharps[0]);
           color = applyTemperature(color, temperatures[0], 0.0);
-          color = applyHun(color, hues[0], 0.0);
+          color = applyHun(color, hues[0], saturations[0]);
+          color = applyBrightness(color, brightness[0], 0.0);
 
           for (int i = 1; i < 10; i++) {
             if (abs(colorId - changedIndex[i]) < 2.0) {
                 color = blur(color, uSampler2, vUvs, sharps[i]);
                 color = applyTemperature(color, temperatures[i], 0.0);
-                color = applyHun(color, hues[i], 0.0);
+                color = applyHun(color, hues[i], saturations[i]);
+                color = applyBrightness(color, brightness[i], 0.0);
               }
           }
 
@@ -197,6 +203,8 @@ function renderMesh(container, image, indexImage, imageWidth, imageHeight, index
     mesh.shader.uniforms.indexPixel = selectedIndex;
     mesh.shader.uniforms.sharps = sharps;
     mesh.shader.uniforms.hues = hues;
+    mesh.shader.uniforms.brightness = brightness;
+    mesh.shader.uniforms.saturations = saturations;
     mesh.shader.uniforms.changedIndex = changedIndex;
     mesh.shader.uniforms.temperatures = temperatures;
     mesh.shader.uniforms.indexSample = new PIXI.BaseTexture(indexCanvas);
@@ -215,7 +223,9 @@ function App(props) {
   const [sharpsState, setSharpsState] = useState([50]);
   const [enableBrush, setEnableBrush] = useState(false);
   const [huesState, setHuesState] = useState([50]);
+  const [brightnessState, setBrightnessState] = useState([50]);
   const [temperaturesState, setTemperaturesState] = useState([50]);
+  const [saturationsState, setSaturationsState] = useState([50]);
   const [selectedIndexState, setSelectedIndexState] = useState([-100, -100, -100]);
   const [brushSize, setBrushSize] = useState(20);
   const [background, setBackground] = useState();
@@ -449,6 +459,43 @@ function App(props) {
 
                     huesState[index] = value;
                     setHuesState([...huesState]);
+                  }
+                }} />
+                
+                <Slider label='Saturation'  max={100} min={0} value={saturationsState[paramsIndex] || 50} onChange={(value) => {
+                  const [index, currentColorId] = getCurrentColorIndex();
+
+                  const normalizedValue = (value - 50) / 50;
+
+                  if (index === -1) {
+                    changedIndex.push(currentColorId);
+                    saturations.push(normalizedValue);
+
+                    saturationsState.push(value);
+                    setSaturationsState([...saturationsState]);
+                  } else {
+                    saturations[index] = normalizedValue;
+
+                    saturationsState[index] = value;
+                    setSaturationsState([...saturationsState]);
+                  }
+                }} />
+                <Slider label='Brightness'  max={100} min={0} value={brightnessState[paramsIndex] || 50} onChange={(value) => {
+                  const [index, currentColorId] = getCurrentColorIndex();
+
+                  const normalizedValue = (value - 50) / 50;
+
+                  if (index === -1) {
+                    changedIndex.push(currentColorId);
+                    brightness.push(normalizedValue);
+
+                    brightnessState.push(value);
+                    setBrightnessState([...brightnessState]);
+                  } else {
+                    brightness[index] = normalizedValue;
+
+                    brightnessState[index] = value;
+                    setBrightnessState([...brightnessState]);
                   }
                 }} />
               </Stack>
