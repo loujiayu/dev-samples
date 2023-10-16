@@ -1,0 +1,10 @@
+{
+  "name": "chat",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "microsoft-cognitiveservices-speech-sdk": "^1.32.0",
+    "play-sound": "^1.1.6"
+  }
+}

@@ -10,7 +10,7 @@ audio_config = speechsdk.audio.AudioOutputConfig(use_default_speaker=True)
 
 # The language of the voice that speaks.
 speech_config.speech_synthesis_voice_name='en-US-JennyNeural'
-
+speech_config.speech_synthesis_language = 'zh-CN'
 speech_synthesizer = speechsdk.SpeechSynthesizer(speech_config=speech_config, audio_config=audio_config)
 
 # Get text from the console and synthesize to the default speaker.

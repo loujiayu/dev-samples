@@ -1,6 +1,8 @@
 import azure.cognitiveservices.speech as speechsdk
 import time
 import json
+from chinese import text_to_speech
+from chat import gpt_chat
 
 speech_key, service_region = "c277739dd46c49d88401e71c91e817c2","eastus"
 weatherfilename="en-us_zh-cn.wav"
@@ -17,11 +19,18 @@ def speech_recognize_continuous_async_from_microphone():
 
     done = False
 
+    chating = False
+
     def recognizing_cb(evt: speechsdk.SpeechRecognitionEventArgs):
         print('RECOGNIZING: {}'.format(evt))
 
     def recognized_cb(evt: speechsdk.SpeechRecognitionEventArgs):
-        print('RECOGNIZED: {}'.format(evt.result.text))
+        if evt.result.text is not None:
+            chating = True
+            print('RECOGNIZED: {}'.format(evt.result.text))
+        
+            text_to_speech(gpt_chat(evt.result.text))
+            chating = False
 
     def stop_cb(evt: speechsdk.SessionEventArgs):
         """callback that signals to stop continuous recognition"""
@@ -48,7 +57,9 @@ def speech_recognize_continuous_async_from_microphone():
         # No real sample parallel work to do on this thread, so just wait for user to type stop.
         # Can't exit function or speech_recognizer will go out of scope and be destroyed while running.
         print('type "stop" then enter when done')
-        stop = input()
+        if not chating:
+            stop = input()
+        print(stop)
         if (stop.lower() == "stop"):
             print('Stopping async recognition.')
             speech_recognizer.stop_continuous_recognition_async()
