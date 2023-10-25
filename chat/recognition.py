@@ -7,7 +7,6 @@ from chat import gpt_chat
 speech_key, service_region = "c277739dd46c49d88401e71c91e817c2","eastus"
 weatherfilename="en-us_zh-cn.wav"
 
-
 def speech_recognize_continuous_async_from_microphone():
     """performs continuous speech recognition asynchronously with input from microphone"""
     speech_config = speechsdk.SpeechConfig(subscription=speech_key, region=service_region)
@@ -25,12 +24,16 @@ def speech_recognize_continuous_async_from_microphone():
         print('RECOGNIZING: {}'.format(evt))
 
     def recognized_cb(evt: speechsdk.SpeechRecognitionEventArgs):
-        if evt.result.text is not None:
-            chating = True
+        print('Debug: recognize length {}'.format(len(evt.result.text)))
+        if len(evt.result.text) > 0:
+            speech_recognizer.stop_continuous_recognition_async()
             print('RECOGNIZED: {}'.format(evt.result.text))
-        
+            chating = True
+
             text_to_speech(gpt_chat(evt.result.text))
             chating = False
+            speech_recognizer.start_continuous_recognition_async()
+
 
     def stop_cb(evt: speechsdk.SessionEventArgs):
         """callback that signals to stop continuous recognition"""
