@@ -26,13 +26,15 @@ def speech_recognize_continuous_async_from_microphone():
     def recognized_cb(evt: speechsdk.SpeechRecognitionEventArgs):
         print('Debug: recognize length {}'.format(len(evt.result.text)))
         if len(evt.result.text) > 0:
-            speech_recognizer.stop_continuous_recognition_async()
+            result_future = speech_recognizer.stop_continuous_recognition_async()
             print('RECOGNIZED: {}'.format(evt.result.text))
             chating = True
 
             text_to_speech(gpt_chat(evt.result.text))
+
+            result_future.get()
             chating = False
-            speech_recognizer.start_continuous_recognition_async()
+            # speech_recognizer.start_continuous_recognition_async()
 
 
     def stop_cb(evt: speechsdk.SessionEventArgs):
