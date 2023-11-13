@@ -10,7 +10,7 @@ def recognize_from_microphone():
     speech_config.speech_recognition_language="zh-CN"
 
     audio_config = speechsdk.audio.AudioConfig(use_default_microphone=True)
-    auto_detect_source_language_config = speechsdk.languageconfig.AutoDetectSourceLanguageConfig(languages=["en-US", "zh-CN"])
+    auto_detect_source_language_config = speechsdk.languageconfig.AutoDetectSourceLanguageConfig(languages=["zh-CN"])
 
     speech_recognizer = speechsdk.SpeechRecognizer(speech_config=speech_config, audio_config=audio_config, auto_detect_source_language_config=auto_detect_source_language_config)
 
