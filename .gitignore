@@ -2,3 +2,6 @@
 __pycache__/
 *.pyc
 browser_profile/
+.env
+articles/
+.DS_Store
