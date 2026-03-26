@@ -1,14 +1,17 @@
 """
-Use Playwright with a persistent browser profile to:
+Use patchright (anti-detection Playwright fork) with a persistent browser profile to:
 1. Visit https://seekingalpha.com/alpha-picks/articles — download the first article
 2. Download https://seekingalpha.com/alpha-picks/picks/current
 3. Download https://seekingalpha.com/alpha-picks/picks/removed
 4. Upload all saved pages to Azure Blob Storage, then delete local files
 
+patchright is a drop-in replacement for playwright that patches CDP runtime leaks,
+navigator.webdriver, and other automation fingerprints — no stealth plugin needed.
+
 Requires:
   - Chromium running with --remote-debugging-port=9222
   - SingleFile MV3 extension installed in that Chromium profile
-  - pip install azure-storage-blob python-dotenv
+  - pip install patchright azure-storage-blob python-dotenv
   - .env file with AZURE_STORAGE_CONNECTION_STRING
 """
 
@@ -21,8 +24,7 @@ from datetime import datetime
 from pathlib import Path
 
 from dotenv import load_dotenv
-from playwright.async_api import async_playwright
-from playwright_stealth import Stealth
+from patchright.async_api import async_playwright
 
 load_dotenv()
 
@@ -134,7 +136,13 @@ async () => {
 
 
 async def singlefile_save(page, ctx, page_cdp) -> dict | None:
-    """Trigger SingleFile save on the currently focused page."""
+    """Trigger SingleFile save on the currently focused page.
+
+    Uses CDP Runtime.evaluate on the extension's options page so that:
+    - chrome.tabs is available (extension page context)
+    - dynamic import() works (not a service worker)
+    - patchright's JS patches are bypassed (CDP evaluates natively)
+    """
     await page_cdp.send("Page.bringToFront")
     await asyncio.sleep(0.3)
 
@@ -147,12 +155,29 @@ async def singlefile_save(page, ctx, page_cdp) -> dict | None:
     await page_cdp.send("Page.bringToFront")
     await asyncio.sleep(0.3)
 
+    # Use CDP Runtime.evaluate instead of page.evaluate to bypass
+    # patchright's anti-detection patches that hide chrome.tabs
+    ext_cdp = await ctx.new_cdp_session(ext_page)
+
     print("  Triggering SingleFile capture ...")
     try:
-        result = await asyncio.wait_for(
-            ext_page.evaluate(SINGLEFILE_JS),
+        cdp_result = await asyncio.wait_for(
+            ext_cdp.send(
+                "Runtime.evaluate",
+                {
+                    "expression": f"({SINGLEFILE_JS})()",
+                    "awaitPromise": True,
+                    "returnByValue": True,
+                },
+            ),
             timeout=360,
         )
+        if cdp_result.get("exceptionDetails"):
+            desc = cdp_result["exceptionDetails"].get("text", "unknown error")
+            print(f"  ERROR: {desc}")
+            result = None
+        else:
+            result = cdp_result.get("result", {}).get("value")
     except asyncio.TimeoutError:
         print("  ERROR: Overall timeout reached")
         result = None
@@ -164,11 +189,9 @@ async def singlefile_save(page, ctx, page_cdp) -> dict | None:
 
 async def _detect_captcha(page) -> bool:
     """Check all frames (main + iframes) for the Press & Hold captcha."""
-    # Check for #px-captcha container on main page
     px = await page.query_selector("#px-captcha")
     if px and await px.is_visible():
         return True
-    # Check text in every frame (main frame + iframes)
     for frame in page.frames:
         try:
             found = await frame.evaluate(
@@ -314,7 +337,6 @@ def upload_to_azure_blob(local_path: Path, blob_name: str):
 
 
 async def main():
-    stealth = Stealth()
     saved_files: list[Path] = []
 
     async with async_playwright() as p:
@@ -322,9 +344,7 @@ async def main():
         browser = await p.chromium.connect_over_cdp(CDP_URL)
         ctx = browser.contexts[0] if browser.contexts else await browser.new_context()
 
-        for pg in ctx.pages:
-            await stealth.apply_stealth_async(pg)
-        ctx.on("page", lambda pg: asyncio.ensure_future(stealth.apply_stealth_async(pg)))
+        # patchright handles anti-detection internally — no stealth plugin needed
 
         browser_cdp = await browser.new_browser_cdp_session()
         await browser_cdp.send("Browser.setDownloadBehavior", {"behavior": "default"})
@@ -374,6 +394,10 @@ async def main():
                 ]
                 if existing:
                     print(f"SKIP: Already saved as {existing[0].name}")
+                    print("No new article — skipping all remaining steps.")
+                    await browser.close()
+                    print("\nDone.")
+                    return
                 else:
                     date_prefix = parse_date_prefix(first_article.get("date", ""))
                     title = safe_filename(first_article.get("title", "article"))

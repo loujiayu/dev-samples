@@ -1,4 +1,5 @@
 playwright==1.58.0
 playwright-stealth==2.0.2
+scrapling[fetchers]
 azure-storage-blob
 python-dotenv
