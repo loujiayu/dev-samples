@@ -20,6 +20,7 @@ import os
 import re
 import shutil
 import sys
+import urllib.request
 from datetime import datetime
 from pathlib import Path
 
@@ -453,6 +454,20 @@ async def main():
                 upload_to_azure_blob(f, blob_name)
             except Exception as e:
                 print(f"  ERROR uploading {f.name}: {e}")
+
+        # Trigger email notification
+        print("\nSending email notification ...")
+        try:
+            req = urllib.request.Request(
+                "https://material.azurewebsites.net/api/send_email",
+                data=b"{}",
+                headers={"Content-Type": "application/json"},
+                method="POST",
+            )
+            with urllib.request.urlopen(req, timeout=30) as resp:
+                print(f"  Email API responded: {resp.status}")
+        except Exception as e:
+            print(f"  ERROR sending email: {e}")
     else:
         print("\nNo new files to upload.")
 
