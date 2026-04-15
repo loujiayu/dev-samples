@@ -5,3 +5,5 @@ browser_profile/
 .env
 articles/
 .DS_Store
+capture_seekingalpha.log
+capture_seekingalpha.err.log

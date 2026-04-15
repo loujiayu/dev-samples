@@ -16,6 +16,7 @@ Requires:
 """
 
 import asyncio
+import json
 import os
 import re
 import shutil
@@ -339,6 +340,7 @@ def upload_to_azure_blob(local_path: Path, blob_name: str):
 
 async def main():
     saved_files: list[Path] = []
+    article_title: str | None = None
 
     async with async_playwright() as p:
         print(f"Connecting to Chromium via CDP at {CDP_URL} ...")
@@ -381,9 +383,13 @@ async def main():
             """)
 
             if not first_article:
-                print("ERROR: No article found on the page")
+                print("No article found on the page — skipping all remaining steps.")
+                await browser.close()
+                print("\nDone.")
+                return
             else:
-                print(f"First article: {first_article['title']}")
+                article_title = first_article['title']
+                print(f"First article: {article_title}")
                 print(f"  Date: {first_article['date']}")
                 print(f"  URL:  {first_article['href']}")
 
@@ -458,9 +464,12 @@ async def main():
         # Trigger email notification
         print("\nSending email notification ...")
         try:
+            email_payload = {}
+            if article_title:
+                email_payload["subject"] = article_title
             req = urllib.request.Request(
                 "https://material.azurewebsites.net/api/send_email",
-                data=b"{}",
+                data=json.dumps(email_payload).encode(),
                 headers={"Content-Type": "application/json"},
                 method="POST",
             )
